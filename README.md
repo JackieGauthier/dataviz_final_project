@@ -15,8 +15,7 @@ In this project, I explored U.S. water pollution with data sourced from ProPubli
 **Percentage of Facilities Reporting Water Releases by State:** 
 
 _[include your favorite visualization from this project here]_
-![ScreenShot]<img src="https://github.com/JackieGauthier/dataviz_final_project/upload/main/figures/ProjPlot1.png" width="30%">
-![](https://github.com/JackieGauthier/dataviz_final_project/upload/main/figures/ProjPlot1.png)
+<img width="620" alt="Proj1Plot" src="https://github.com/JackieGauthier/dataviz_final_project/assets/25259727/ec08b681-46d1-4114-b111-74846886f39c">
 
 
 
@@ -27,7 +26,8 @@ In this project, I explored the relationship between various demographic and eco
 **Average National Walkability Index in CBSA Regions of Florida:** 
 
 _[include your favorite visualization from this project here]_
-<img src="https://github.com/JackieGauthier/dataviz_final_project/upload/main/figures/ProjPlot2.png" width="80%" height="80%">
+<img width="435" alt="ProjPlot2" src="https://github.com/JackieGauthier/dataviz_final_project/assets/25259727/0c9a11c3-209a-45f0-ba71-8d9777615499">
+
 
 (you can place your figures in the `figures/` folder and use the `![](path_to_picture)` option to add the pictures here)
 
@@ -39,9 +39,9 @@ In this project, I explored data visualization techniques for exploratory data a
 **FL Poly News Article Word Cloud:** 
 
 _[include your favorite visualization from this project here]_
-<img src="https://github.com/JackieGauthier/dataviz_final_project/upload/main/figures/ProjPlot3.png" width="80%" height="80%">
+<img width="320" alt="ProjPlot3" src="https://github.com/JackieGauthier/dataviz_final_project/assets/25259727/779e0018-482b-411a-bd2a-89c63ea671ed">
 
 
 ### Moving Forward
 
-_Please add here a short reflection on what you learned and what you plan to continue exploring in terms of data visualization, data storytelling, reproducible research, and/or related topics._
+_Throughout this course, I learned about how to use data visualization to tell a story and exploring datasets. Project 01, taught me how to create meaningful visualizations and how to apply basic data visualization rules. During project 2, I learned how to create interactive plots and plots based on models. Project 03 helped me expand my formatting and text analysis skills. In the future, I will use the skills from this course to create interactive dashboards and partcipate in research._
