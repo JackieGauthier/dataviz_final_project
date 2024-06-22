@@ -10,12 +10,12 @@ The following is a sample of products created during the _"Data Visualization an
 
 ## Project 01
 
-In the `project_01/` folder you can find... _[add short description of your revised project here]_
+In the `project_01/` folder you can find
 
 **Sample data visualization:** 
 
 _[include your favorite visualization from this project here]_
-<img src="https://github.com/reisanar/figs/raw/master/echarts.png" width="70%" height="70%">
+<img src="https://github.com/JackieGauthier/dataviz_final_project/upload/main/figures/ProjPlot1.png" width="70%" height="70%">
 
 
 ## Project 02
@@ -25,7 +25,7 @@ In this project, I explored ... _[short description of your revised project goes
 **Sample data visualization:** 
 
 _[include your favorite visualization from this project here]_
-<img src="https://raw.githubusercontent.com/reisanar/dataviz_final_project/main/figures/fl_higher_ed.png" width="80%" height="80%">
+<img src="https://github.com/JackieGauthier/dataviz_final_project/upload/main/figures/ProjPlot2.png" width="80%" height="80%">
 
 (you can place your figures in the `figures/` folder and use the `![](path_to_picture)` option to add the pictures here)
 
@@ -37,7 +37,7 @@ In this project, I explored ... _[short description of the data visualizations y
 **Sample data visualization:** 
 
 _[include your favorite visualization from this project here]_
-<img src="https://github.com/reisanar/figs/raw/master/concrete_density.png" width="80%" height="80%">
+<img src="https://github.com/JackieGauthier/dataviz_final_project/upload/main/figures/ProjPlot3.png" width="80%" height="80%">
 
 
 ### Moving Forward
