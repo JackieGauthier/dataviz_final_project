@@ -15,7 +15,9 @@ In this project, I explored U.S. water pollution with data sourced from ProPubli
 **Percentage of Facilities Reporting Water Releases by State:** 
 
 _[include your favorite visualization from this project here]_
-<img src="https://github.com/JackieGauthier/dataviz_final_project/upload/main/figures/ProjPlot1.png" width="70%" height="70%">
+![ScreenShot]<img src="https://github.com/JackieGauthier/dataviz_final_project/upload/main/figures/ProjPlot1.png" width="30%">
+![](https://github.com/JackieGauthier/dataviz_final_project/upload/main/figures/ProjPlot1.png)
+
 
 
 ## Project 02
