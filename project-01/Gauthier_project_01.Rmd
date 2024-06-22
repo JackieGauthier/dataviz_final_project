@@ -1,0 +1,197 @@
+---
+title: "Mini-Project 01"
+author: "Jacqueline Gauthier `jgauthier3710@floridapoly.edu`"
+output: 
+  html_document:
+    keep_md: true
+    toc: true
+    toc_float: true
+---
+
+
+# Introduction
+
+Industrial facilities often pollute the surrounding water and air. These pollutants impact the environment and public health of the surrounding area so reducing these pollutants is in the best interest of the surrounding population. Some states and regions of the United States have more extensive regulatory requirements placed on industrial facilities (Environmental Protection Agency, 2016). This report explores and visualizes water pollution data across different states, counties, and regions in the United States. The purpose of this report is to uncover patterns and insights related to water releases by facilities, emphasizing how various geographical locations compare in terms of pollution levels. The visualizations include scatter plots, bar charts, and boxplots, with each visualization designed to highlight specific aspects of the data. To make this visualization, I am going to use a dataset that is titled *Toxic Air Pollution Hot Spots* (ProPublica, 2021). This dataset contains information about the pollution caused by various industrial facilities across the United States. By exploring and visualizing this data, I aim to gain insights into the distribution of water pollutants and to identify places where a high percentage of industrial facilities tend to pollute the local waterways.
+
+For this assignment, I originally planned on creating three visualizations. The first visualization I planned to create is a scatterplot that visualizes the relationship between the mean distance to reach a body of water and the percentage of facilities reporting water releases in each state. For this visualization, I planned to highlight the state of Florida in red and display a linear regression line to demonstrate the general trend of the data. The second visualization I planned to create is a bar plot showing the percentage of facilities reporting water releases by county in Florida. For this graph, I wanted to fill the bars with a gradient color to display the mean distance to reach each of the counties. For these visualizations, I planned to use clear titles and consistent fonts to make the graphs readable. I ended up using the "Source Family" font on all of the graphs.
+
+
+
+## Load and clean data
+
+```{r load-clean-data, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sf)
+library(tigris)
+library(viridis)
+library(colorBlindness)
+
+data <- read_csv("../data/facilities_for_data_store.csv")
+```
+
+```{r}
+head(data)
+```
+
+## Data Summaries
+
+```{r}
+water_pollution_summary_by_state <- data %>%
+  group_by(state) %>%
+  summarize(
+    count_facilities = n(),
+    count_water_releases = sum(waterreleases == TRUE, na.rm = TRUE),
+    mean_distance_reach = mean(distancetoreach, na.rm = TRUE),
+    percent_water_release = (count_water_releases / count_facilities) * 100
+  )
+water_pollution_summary_by_state
+```
+```{r}
+water_pollution_summary_by_county <- data %>%
+  filter(state == "FL") %>%
+  group_by(county) %>%
+  summarize(
+    count_facilities = n(),
+    count_water_releases = sum(waterreleases == TRUE, na.rm = TRUE),
+    mean_distance_reach = mean(distancetoreach, na.rm = TRUE),
+    percent_water_release = (count_water_releases / count_facilities) * 100
+  )
+water_pollution_summary_by_county
+```
+```{r}
+water_pollution_summary_by_state_county <- data %>%
+  group_by(state, county, region) %>%
+  summarize(
+    count_facilities = n(),
+    count_water_releases = sum(waterreleases == TRUE, na.rm = TRUE),
+    mean_distance_reach = mean(distancetoreach, na.rm = TRUE),
+    mean_chromhexpercent = mean(chromhexpercent, na.rm = TRUE),
+    mean_stacktemperature = mean(stacktemperature, na.rm = TRUE),
+    mean_stackvelocity = mean(stackvelocity, na.rm = TRUE),
+    mean_stackstackheight = mean(stackheight, na.rm = TRUE),
+    percent_water_release = (count_water_releases / count_facilities) * 100
+  )
+water_pollution_summary_by_state_county
+```
+
+
+# Figure 1
+
+The scatterplot code below visualizes the relationship between the mean distance to reach and the percentage of facilities reporting water releases by state. The mean distance to reach is the distance between where pollutants are released and the nearest body of water. Each point on the plot represents a state, with Florida serving as a focal point for comparison. Florida is highlighted in red and labeled to draw attention to the state. Then a linear regression line was added to the plot so that the general trend line in the data could be visualized.
+
+```{r}
+water_pollution_summary_by_state <- water_pollution_summary_by_state %>%
+  mutate(color_state = ifelse(state == "FL", "FL", "Other"))
+
+# Create the scatterplot
+scatter_plot <- ggplot(water_pollution_summary_by_state, aes(x = mean_distance_reach, y = percent_water_release, color = color_state)) +
+  geom_point(size = 3) +
+  geom_text(data = filter(water_pollution_summary_by_state, state == "FL"), aes(label = "FL"), vjust = -1, color = "red", size = 4) +  
+  labs(title = "Percentage of Facilities Reporting Water Releases by State",
+       x = "Mean Distance to Reach",
+       y = NULL) +
+  theme(text = element_text(family = "Source Family"),
+    plot.title.position = "plot",
+    axis.text.y = element_text(angle = 0, hjust = 1),
+    axis.title.x = element_text(hjust = 1),
+    plot.margin = margin(t = 1, r = 1, b = 1, l = 1, unit = "cm"),
+    panel.grid.major = element_line(color = "grey98"),
+    panel.grid.minor = element_line(color = "white")
+  ) +
+  geom_smooth(method = "lm", color = "black", linetype = "dashed", size = 0.5) +
+  guides(color = FALSE)
+
+
+scatter_plot
+```
+
+This scatter plot reveals how the average distance a pollutant travels to reach a water body in a state correlates with the percentage of facilities reporting water pollution in the state. Across the states in this dataset, as the mean distance to reach increases, the percentage of facilities reporting water pollution in the state decreases. This generalized trend is shown by the dashed line in the graph. By illustrating that states with facilities located further away from water bodies on average have lower rates of water releases, this plot can be used to understand potential geographic factors affecting water pollution reporting across states. This illustration can be used by environmental groups, activists, and policymakers when deciding where to put industrial facilities. Additionally, by specifically highlighting Florida with a separate color, the graph shows that Florida has a slighter higher percentage of facilities reporting water pollution than the mean distance to reach would predict. Policymakers in Florida can utilize this graph to compare their industrial facility rules and regulations to other states. Overall this graph tells the story of the average distance to a body of water the percentage of facilities that report water pollution in all of the states and how Florida compares to the other states in the dataset.
+
+While the graph demonstrates that there is an inverse relationship between distance to reach and the percentage of facilities reporting water releases, most states are not particularly close to the trend line which indicates that the correlation is not particularly strong. This weak correlation indicates that the percentage of facilities that release pollution into the water cannot be fully explained by the distance to nearby bodies of water.
+
+A variety of data visualization principles were applied to the dataset to make the visualization easily understood by the average viewer. One data visualization tenet that was applied to the graph is that it is best to remove unnecessary information from a graph so that the key parts of the graph can be emphasized. I removed the y-axis label because the title clearly described what the y-axis is. Since I could label the state of Florida directly in the graph, I was able to remove the legend from the graph. Additionally, lighten the grid on the graph so that grid lines are not too distracting from the data. In the plot, I used a bright red to highlight the state of Florida in the dataset because it is best to use a bright or dark color to highlight key components in a chart. Another component of data visualization that was focused on for this graph was alignment. I aligned the title to the left of the graph and I aligned the x-axis label to the right of the plot. By aligning the title and y-axis to the left and right respectively, each plot element is aligned with another plot element and the plot is easy to read.
+
+
+# Figure 2
+
+The code below creates a bar plot that shows the percentage of facilities reporting water releases for each county in Florida. Each bar is filled with a gradient color that represents the mean distance to a body of water from the release location of the facilities. The gradient ranges from light blue to dark blue and these colors represent the mean distance to reach in each county from low to high.
+
+```{r}
+ggplot(water_pollution_summary_by_county, aes(x = county, y = percent_water_release)) +
+  geom_bar(aes(fill = mean_distance_reach), stat = "identity") +  
+  scale_fill_gradient(low = "lightblue", high = "darkblue", name = "Mean Distance to Reach") +
+  labs(title = "Percent of Facilities Reporting Water Releases by County in Florida",
+       x = NULL,
+       y = "Percent of Water Releases") +
+  theme(text = element_text(family = "Source Family"),
+    legend.position = "top",
+    legend.justification = "left", 
+    legend.title.align = 0.5,
+    axis.title.x = element_text(hjust = 1),
+    axis.text.y = element_text(angle = 0, hjust = 1),
+    plot.title.position = "plot",
+    panel.grid = element_blank()
+  ) +
+  coord_flip() +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0))
+
+
+```
+
+
+This bar plot tells the story of water pollution rate disparities across Florida's counties with industrial facilities. It highlights counties with a higher percentage of facilities reporting water releases which indicates poor environmental management by the facilities. By incorporating color-coded gradients based on the mean distance to a body of water from the release site, the plot offers insights into how the average distance to a body of water relates to the water pollution rate of these facilities. This plot can guide policymakers and environmental organizations in which parts of the state should be prioritized for industrial water pollution intervention and regulation. Overall, the chart seems to indicate that most counties in Florida that have industrial facilities have a high percentage of water releases. Eight of the counties in the dataset, have one hundred percent of their facilities release pollutants into local bodies of water while six of the counties have a water release rate of fifty percent and only five of the counties don't have any water releases.
+
+For this chart, I applied various data visualization principles related to color, alignment, and labels to make the chart more readable for the average viewer. The bars on this chart were colored with a single hue of varying intensity because of they represent quantitative values. The range of blue on the bars of this chart is a sequential range which is ideal for representing quantitative values like distance. All the labels and legends on this chart are aligned in accordance with design principles. In a graph or chart, all visual elements should be aligned with another visual element in the visualization. In the above graph, the title is left-aligned with the plot of the graph, and the x-axis label is aligned with the right side of the graph. The legend is just put below the title so that doesn't distract from the main plot and it is left aligned on the plot. Another tenet of data visualization that I applied to my graph is that it is best to remove unnecessary elements on the graph. To make the graph simpler, I removed the grid lines for this graph because they were unnecessary, and I removed the y-axis label. Due to the title of the graph, the y-axis label can be removed for this graph.
+
+
+# Figure 3
+
+The code creates a box plot that show the number of water releases by region in the dataset.
+
+```{r}
+water_pollution_summary_by_state_county$region <- factor(water_pollution_summary_by_state_county$region)
+
+# Create the box plot
+box_plot <- ggplot(water_pollution_summary_by_state_county, aes(x = region, y = count_water_releases, fill = region)) +
+  geom_boxplot(lwd = 0.2, fatten = 4) +  # Adjust box plot appearance
+  scale_fill_manual(values = colorBlindness::Blue2DarkRed12Steps) +  # Use the specified color palette
+  labs(title = "Number of water releases by Region",
+       x = "Region",
+       y = NULL) +
+  theme(text = element_text(family = "Source Family"),
+        legend.position = "none",
+        axis.title.x = element_text(hjust = 1),
+        plot.title.position = "plot")
+box_plot
+```
+> EPA Regions:
+Region 1: Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island, Vermont;
+Region 2: New Jersey, New York, Puerto Rico, U.S. Virgin Islands;
+Region 3: Delaware, District of Columbia, Maryland, Pennsylvania, Virginia, West Virginia;
+Region 4: Alabama, Florida, Georgia, Kentucky, Mississippi, North Carolina, South Carolina, Tennessee;
+Region 5: Illinois, Indiana, Michigan, Minnesota, Ohio, Wisconsin;
+Region 6: Arkansas, Louisiana, New Mexico, Oklahoma, Texas;
+Region 7: Iowa, Kansas, Missouri, Nebraska;
+Region 8: Colorado, Montana, North Dakota, South Dakota, Utah, Wyoming;
+Region 9: Arizona, California, Hawaii, Nevada, American Samoa, Guam, Northern Mariana Islands;
+Region 10: Alaska, Idaho, Oregon, Washington;
+
+
+This box plot narrates the story of regional disparities in water pollution across counties in the 10 regions of the United States. By illustrating the distribution of water releases per county within each region, this graph reveals which regions have counties with higher pollution burdens.  This graph underscores the need to analyze how policy and geographic factors impact the number of facilities that leak pollutants into the water supply. This plot shows how certain regions, like region six, have several counties with a high number of industrial facilities leaking pollutants into the local bodies of water. The graph indicates that at least one county contains over 40 facilities because it has over 40 facilities that have leaked pollutants into the water. This graph can be used by activists and policymakers in these regions to limit the number of industrial facilities that can be put into a particular county or to push for stricter environmental regulations. Overall, the graph underscores the importance of addressing water pollution at the regional level. 
+
+For this visualization, I utilized a variety of data visualization principles to effectively tell a story. I aligned the title to the left of the graph and I aligned the x-axis label to the right of the plot. By aligning these labels to the plot, I ensured that each element in the plot was aligned with another element in the plot. Additionally, I placed these labels on opposite sides so that the graph appears more balanced. Additionally, I used a discrete color palette for the regions because the regions are unordered data. To more effectively view the median values in the plot I made the median thicker and decreased the thickness of the other lines on the graph. I also removed the legend for the regions in this graph.
+
+
+# Conclusion
+
+Some states and regions of the United States have more extensive regulatory requirements placed on industrial facilities that emitt pollutants. The visualations above can be used to analyze how much water pollution various regions, states, and counties have in the United States. Future works can analyzes how various regulations and rulls affect the water pollution in these areas. 
+
+
+
+# References
+
+ProPublica. (2021). Toxic Air Pollution Hot Spots [Data set]. Analysis of the EPA’s Risk Screening Environmental Indicators model. Retrieved from ProPublica.
+
+Environmental Protection Agency. (2016). Industrial waste resource guidelines [Brochure]. Retrieved from https://www.epa.gov/sites/default/files/2016-03/documents/industrial-waste-guide.pdf
+
+Healy, K. (2019). Data visualization: A practical introduction. Retrieved from https://socviz.co/refineplots.html#refineplots
