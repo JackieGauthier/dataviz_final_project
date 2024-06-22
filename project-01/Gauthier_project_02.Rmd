@@ -1,0 +1,209 @@
+---
+title: "Data Visualization - Mini-Project 2"
+author: "Jacqueline Gauthier `jgauthier3710@floridapoly.edu`"
+output: html_notebook
+---
+
+
+
+# Introduction
+
+This report explores the relationship between various attributes and how walkable a certain region of Florida is on average. For this project data was collected from a dataset called the National Walkability Index on the EPA's website (Environmental Protection Agency, 2021). The dataset was filtered so that only districts in the state of Florida were shown and the dataset was divided into groups based on their CBSA (Core-based statistical area). Next, summary statistics were computed for the region so that the new dataset includes the average National Walkability Index score (AvgNWI), average percentage of population that is working-age (AvgP_Wrk), average district population (AvgDisPop), total district population (TotCPop), and average percentage of low-wage workers (AvgP_LowW) for all the districts in each CBSA region. Each of these attributes serves a distinct purpose in evaluating aspects related to walkability, demographics, and economic characteristics within the selected regions. I predict that areas with larger average working-aged and smaller average low-waged population percentages will have higher walkability scores on average.
+
+My original plan was to make three plots, an interactive scatter plot, a choropleth map, and a heatmap. In the end, I decided to make these plots in addition to a coefficients plot. My first plot is an interactive scatter plot of AvgP_Wrk vs AvgP_LowW with AvgNWI color-coded. The second figure that I made is a choropleth map that shows the AvgNWI across different CBSA regions in Florida. Next, I made a coefficients plot from a multiple linear regression model predicting AvgNWI. I was motivated to create this plot because I wanted to see how various variables impact AvgNWI. Lastly, I made a heatmap showing the correlations between AvgNWI and the other selected attributes.
+
+
+
+## Load Packages and Files
+
+```{r}
+library(tidyverse)
+library(sf)
+library(leaflet)
+library(terra)
+library(htmlwidgets)
+library(plotly)
+library(broom)
+
+
+walkability <- read_csv("../data/EPA_SmartLocationDatabase_V3_Jan_2021_Final.csv")
+
+gdb_path <- "../data/Natl_WI.gdb"
+layers <- st_layers(gdb_path)
+```
+
+```{r}
+layer_name <- layers$name[1]
+nwi <- st_read(gdb_path, layer = layer_name)
+```
+
+
+## Summarize the data
+
+```{r}
+flwalkability <- walkability %>%
+  filter(STATEFP == '12') %>%
+  group_by(CBSA_Name) %>%
+  summarize(AvgNWI = mean(NatWalkInd, na.rm = TRUE),
+            AvgP_Wrk = mean(P_WrkAge, na.rm = TRUE),
+            AvgDisPop = mean(TotPop, na.rm = TRUE),
+            TotCPop = sum(TotPop, na.rm = TRUE),
+            AvgP_LowW = mean(R_PCTLOWWAGE, na.rm = TRUE)
+            )
+flwalkability
+```
+
+
+```{r}
+# Join the summarized data to the map for Florida
+florida_nwi <- nwi[nwi$STATEFP == '12', ]
+florida_nwi <- florida_nwi[!is.na(florida_nwi$NatWalkInd), ]
+users_map <- florida_nwi %>%
+  left_join(flwalkability, by = "CBSA_Name")
+users_map
+```
+
+
+# Figure 1 - Interactive Scatter Plot
+
+```{r}
+# Create the base ggplot
+my_plot <- ggplot(
+  data = flwalkability,
+  mapping = aes(x = AvgP_Wrk, y = AvgP_LowW, color = AvgNWI)) +
+  geom_point(aes(text = paste(
+    "CBSA Name: ", CBSA_Name, "<br>",
+    "Average District Population: ", AvgDisPop
+  )), size = 4) +
+  scale_color_viridis_c() +
+  labs(
+    title = "Average Portion of the Population that is Working Age vs Low Wage",
+    x = "Average Portion of the Population that is Working Age",
+    y = "",
+    color = "AvgNWI"
+  ) +
+  theme_minimal()
+
+# Convert the ggplot to an interactive plotly plot
+interactive_plot <- ggplotly(my_plot, tooltip = "text")
+
+interactive_plot
+```
+
+
+The original plan for the plot shown above is to make an interactive plot that shows the relationship between the average working-age population (AvgP_Wrk) and average low-wage population (AvgP_LowW) across different CBSA regions in Florida, with points color-coded by the average National Walkability Index (AvgNWI). I wanted to display the CBSA name of the point and the average district population when I hover my mouse over the points. To make this plot interactive, plotly was used. This plot was the easiest plot to create and I did not encounter any difficulties creating it. An additional approach I could implement to explore this data further is to add a trend line to highlight patterns in the scatterplot. I could also add more information when I hover over each point.
+
+This plot allows us to exploration of how characteristics like working-age population and low-wage employment correlate across different areas. Additionally, this plot tells the story of how these characteristics affect the national walkability index scores. From the graph, it appears that low-wage employment is negatively correlated with walkability, and the working-age population is positively correlated with walkability. This information can be used to influence policies related to employment and urban planning. One way I applied data science principles to this plot is I keeping the color the same for the AvgNWI variable as the second plot. Additionally, the graph is kept minimal and the points are sized so that they are easy to interact with. The labels on each point are easy to interact with and understand.
+
+
+
+# Figure 2 - Spatial Plot
+
+```{r}
+ggplot(data = users_map) +
+  geom_sf(aes(fill = AvgNWI), size = 0.1, color = "gray80") +
+  scale_fill_viridis_c(option = "viridis", name = "Walkability Index") +
+  labs(title = "Average National Walkability Index in CBSA Regions of Florida",
+       caption = "The Gray areas on the Graph represent areas without walkability Data") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.caption = element_text(hjust = 1)
+  ) +
+  guides(
+    fill = guide_colorbar(
+      title.position = "top",
+      title.hjust = 0.5,
+      title.vjust = 1,
+      title.theme = element_text(size = 8) 
+    ))
+
+```
+
+The original chart planned for this figure was a choropleth map displaying the average National Walkability Index (AvgNWI) across CBSA regions in Florida. For this chart, the walkability data was merged with the geographic data for the state of Florida. To make this graph, I tested a variety of colors to see which color would suit the missing data the best. I decided that light gray would be the best color because it was the least distracting. Figuring out the best color scheme was the main difficulty that I encountered when making this graph. Additionally, I initially had some difficulty merging the data to create this graph. One thing I could add to the graph is a label for the most walkable area.
+
+This map tells the story of how walkable different regions of Florida are on average. This plot can be used by policymakers to identify regions with high walkability scores in Florida. They could then look into the urban planning policies in areas with a high walkability score. The graph used a variety of data visualization principles including keeping a consistent color scheme/gradient to represent the AvgNWI values effectively. Additionally, the design is kept minimal so the data can be focused on the map.
+
+
+# Figure 3
+
+```{r}
+# Load necessary libraries
+library(broom)
+
+# Fit multiple linear regression model
+model <- lm(AvgNWI ~ AvgP_Wrk + AvgDisPop + TotCPop + AvgP_LowW, data = flwalkability)
+
+# Use broom::tidy to extract coefficients and their confidence intervals
+coefficients <- tidy(model, conf.int = TRUE) %>%
+  filter(term != "(Intercept)")  # Remove intercept from plotting
+
+# Plot coefficients with confidence intervals
+ggplot(coefficients, aes(x = estimate, y = fct_rev(term))) +
+  geom_pointrange(aes(xmin = conf.low, xmax = conf.high)) +
+  geom_vline(xintercept = 0, color = "violet") +
+  labs(
+    title = "Coefficients of Multiple Linear Regression Model",
+    x = "Coefficient",
+    y = ""
+  ) +
+  theme_minimal()
+```
+
+This plot displays the coefficients with confidence intervals from a multiple linear regression model predicting AvgNWI using AvgP_Wrk, AvgDisPop, TotCPop, and AvgP_LowW. To make this plot, a multiple linear regression model called model was created that used AvgNWI as the dependent variable and the other variables as predictors. Then the coefficients and their confidence intervals were extracted. The main difficulty that I encountered creating this plot was deciding which plot based on a model that I wanted to create. One additional piece of information that I could add to the plots is the p-values. I was motivated to create this plot because using a multiple linear regression model is an excellent way to understand the impact each predictor variable has on the AvgNWI variable. This approach not only quantifies their impact but also aids in predicting AvgNWI for new areas or scenarios.
+
+This plot tells the story of how much of an impact each of the predictor variables has on the average National Walkability Index value (AvgNWI). By displaying the coefficients, the plot provides insights into which factors most strongly influence the walkability of an area. This plot visually represents the impact of each predictor variable on the National Walkability Index (AvgNWI), providing insights into which factors most strongly influence walkability. The plot shows that the AvgP_Wrk and AvgP_LowW have the most impact on the walkability with the other two variables having zero impact on the walkability. One data visualization principle that was applied in this graph is minimalism. Additionally, I used color coding to draw the viewer's attention to the zero coefficient line.
+
+
+
+# Figure 4 - Heat Map
+
+```{r}
+# Calculate the correlation matrix, convert it to a long format for ggplot, and add rounded correlation values
+cor_matrix <- cor(flwalkability %>% select(-CBSA_Name), use = "complete.obs")
+cor_matrix_long <- as.data.frame(as.table(cor_matrix))
+cor_matrix_long$nice_cor <- round(cor_matrix_long$Freq, 2)
+
+# Plot the heatmap
+heatmap_plot <- ggplot(cor_matrix_long, aes(x = Var2, y = Var1, fill = Freq)) +
+  geom_tile() +
+  geom_text(aes(label = nice_cor), color = "black", size = 4) +
+  scale_fill_gradient2(
+    low = "#F63719",
+    mid = "white",
+    high = "#3B9AB2",
+    limits = c(-1, 1)
+  ) +
+  labs(x = NULL, y = NULL,
+       title = "Heat Map of the Correlation Matrix") +
+  coord_equal() +
+  theme_minimal() +
+  theme(panel.grid = element_blank())
+
+heatmap_plot
+```
+
+The original figure planned here was a heatmap displaying the correlation matrix among AvgNWI, AvgP_Wrk, AvgDisPop, TotCPop, and AvgP_LowW. For this heat map, the correlation coefficient was first computed, converted into a long format, and rounded for ggplot visualization. This plot visualizes the strength and direction of correlations among variables and helps us identify potential relationships and dependencies. The main difficulty that I encountered with this plot was deciding whether or not to include it. In the end, I decided I would keep it because it adds to the previous graphs.
+
+This plot tells the story of how correlated the variables being analyzed in this report are to each other. Some of the data visualization principles that are applied in this graph include utilizing a color scheme that is good for positive versus negative values. Additionally, I used a minimal theme and only labeled parts that needed labels.
+
+
+
+# Conclusions
+
+The findings and visualizations generally confirm assumptions about the relationships between walkability and the predictor variables. Higher walkability tends to correlate with higher working-age populations percentages and slightly lower proportions of low-wage workers. This suggests that areas with better walkability might attract a more economically active and potentially higher-earning population. Higher walkability areas also tend to have higher populations.
+
+
+# References
+
+U.S. Environmental Protection Agency. (2021). National Walkability Index. Data.gov. Retrieved June 15, 2024, from https://catalog.data.gov/dataset/walkability-index1/
+
+U.S. Environmental Protection Agency. (2021). Smart location mapping. Retrieved June 15, 2024, from https://www.epa.gov/smartgrowth/smart-location-mapping
+
+Healy, K. (2019). Data visualization: A practical introduction. Retrieved from https://socviz.co/refineplots.html#refineplots
+
